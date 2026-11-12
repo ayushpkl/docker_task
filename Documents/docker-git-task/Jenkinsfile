@@ -36,28 +36,18 @@ pipeline {
             }
         }
 
-        stage('Open Application Locally') {
+                stage('Open Application Locally') {
             steps {
                 script {
-                    // Wait 2 seconds to ensure the Node server is ready
                     sleep 2
-
-                    // Automatically detect OS and open the browser
-                    if (isUnix()) {
-                        def uname = sh(script: 'uname', returnStdout: true).trim()
-                        if (uname == 'Darwin') {
-                            // macOS
-                            sh "open ${APP_URL}"
-                        } else {
-                            // Linux
-                            sh "xdg-open ${APP_URL} || true"
-                        }
-                    } else {
-                        // Windows
-                        bat "start ${APP_URL}"
-                    }
+                    sh '''
+                        export DISPLAY=:0
+                        export XAUTHORITY=/home/$USER/.Xauthority
+                        nohup google-chrome http://localhost:3000 >/dev/null 2>&1 &
+                    '''
                 }
             }
+        }
         }
     }
 }
