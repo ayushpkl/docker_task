@@ -2,8 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy the app files directly from the build context
-COPY Documents/docker-task/server.js Documents/docker-task/index.html ./
+# Initialize package.json and install Express inside the container
+RUN npm init -y && npm install express
+
+# Copy your application files
+COPY Documents/docker-git-task/server.js Documents/docker-git-task/index.html ./
 
 EXPOSE 3000
 
