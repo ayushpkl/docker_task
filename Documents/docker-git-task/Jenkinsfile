@@ -10,12 +10,11 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Pulls code from the GitHub repo configured in Jenkins
                 checkout scm
             }
         }
 
-            stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     sh "docker build -t ${IMAGE_NAME} -f Documents/docker-git-task/Dockerfile ."
@@ -23,32 +22,27 @@ pipeline {
             }
         }
 
-    stage('Deploy Container') {
+        stage('Deploy Container') {
             steps {
                 script {
-                    // Stop and remove any existing container so port 3000 is free
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
-
-                    // Start the updated container
                     sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 }
             }
         }
 
-                stage('Open Application Locally') {
+        stage('Open Application Locally') {
             steps {
                 script {
                     sleep 2
                     sh '''
                         export DISPLAY=:0
-                        export XAUTHORITY=/home/$USER/.Xauthority
+                        export XAUTHORITY=/home/ayush.ranjan/.Xauthority
                         nohup google-chrome http://localhost:3000 >/dev/null 2>&1 &
                     '''
                 }
             }
         }
-        }
     }
 }
-
