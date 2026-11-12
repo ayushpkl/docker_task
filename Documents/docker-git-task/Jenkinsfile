@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "my-node-site"
+        CONTAINER_NAME = "my-site-container"
+        APP_URL = "http://localhost:3000"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Pulls code from the GitHub repo configured in Jenkins
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${IMAGE_NAME} ."
+                }
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                script {
+                    // Stop and remove any existing container so port 3000 is free
+                    sh "docker stop ${CONTAINER_NAME} || true"
+                    sh "docker rm ${CONTAINER_NAME} || true"
+
+                    // Start the updated container
+                    sh "docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage('Open Application Locally') {
+            steps {
+                script {
+                    // Wait 2 seconds to ensure the Node server is ready
+                    sleep 2
+
+                    // Automatically detect OS and open the browser
+                    if (isUnix()) {
+                        def uname = sh(script: 'uname', returnStdout: true).trim()
+                        if (uname == 'Darwin') {
+                            // macOS
+                            sh "open ${APP_URL}"
+                        } else {
+                            // Linux
+                            sh "xdg-open ${APP_URL} || true"
+                        }
+                    } else {
+                        // Windows
+                        bat "start ${APP_URL}"
+                    }
+                }
+            }
+        }
+    }
+}
+
