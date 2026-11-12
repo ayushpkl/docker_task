@@ -1,18 +1,26 @@
-const express = require('express');
+const http = require('http');
+const fs = require('fs');
 const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Health check endpoint for Jenkins pipeline verification
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'UP', timestamp: new Date() });
+const server = http.createServer((req, res) => {
+  if (req.url === '/' || req.url === '/index.html') {
+    fs.readFile(path.join(__dirname, 'index.html'), (err, content) => {
+      if (err) {
+        res.writeHead(500);
+        res.end('Server Error');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(content);
+    });
+  } else {
+    res.writeHead(404);
+    res.end('Not Found');
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
 });
-
